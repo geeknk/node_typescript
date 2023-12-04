@@ -1,0 +1,20 @@
+import express from "express";
+export const router = express.Router();
+import * as mid from "../middleware/usermiddle.js";
+import * as controller from "../controllers/userController.js";
+
+router.get("/register", controller.signup);
+router.get("/get", mid.checkAuth, controller.getuser);
+router.get("/list/:page", controller.userlist);
+router.post("/auth/signin", controller.signin);
+router.post("/address", mid.checkAuth, controller.user_address);
+router.put("/changePassword", mid.checkAuth, controller.changePass);
+router.put("/verify-reset-password", mid.checkAuth, controller.forgetPass);
+router.put("/updateuser", mid.checkAuth, controller.updateuser);
+router.put("/delete", mid.checkAuth, controller.deluser);
+router.post("/forgot-password", controller.verifyuser);
+router.put("/profile-image", mid.upload, controller.profileImg);
+router.post("/fetch/flipkart/mobile", controller.flipkartMob);
+router.post("/fetch/flipkart/mobile/all", controller.flipkartAllMob);
+router.post("/fetch/snapdeal/t-shirt", controller.snapdealTshirt);
+router.get("/aggregate", controller.aggregate);
