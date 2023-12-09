@@ -1,40 +1,66 @@
-import * as userServices from "../services/userservices.js"
+import * as userServices from "../services/userservices"
+import {Request,Response} from "express"
 
-export const signup = async (req, res) => {
-  const data = await userServices.usersignup(req.body)
-  if(data){
-    res.status(201).send({ success: true, msg:"User registered successfully", data: data });
+interface reqInterface extends Request{
+  data:{
+    email:string
+    id:string
+    page:string
   }
+}
+
+export const signup = async (req:Request, res:Response) => {
+  try {
+    await userServices.usersignup(req.body) 
+    userServices.sendEmail({
+      to:req.body.email,
+      subject: "Registration",
+      text:"user registered successfully",
+      link:"",
+      url:""
+    })     
+    res.status(201).send({ success: true, msg:"User registered successfully"})
+  } catch (error) {
+    
+  }
+  
 };
 
-export const signin = async (req, res) => {
-  const loggedin = await userServices.userlogin(req.body)
+export const signin = async (req:Request, res:Response) => {
+  const loggedin = await userServices.token(req.body)
   if (!loggedin) {
     return res.status(401).send({ success: false, msg: "Email or Password is wrong" });
   } else {
     // Assigning refresh token in http-only cookie  
     res.cookie('refresh_token', loggedin.refreshToken, { httpOnly: true,  
-      sameSite: 'None', secure: true,  
+      sameSite: 'none', secure: true,  
       maxAge: 24 * 60 * 60 * 1000
     });
     res.status(200).send(loggedin.accessToken);
   }
 };
 
- export const changePass = async (req, res) => {
+ export const changePass = async (req:Request, res:Response) => {
   const validpass = await userServices.matchpass(req.body)
   if(!validpass){
     return res.status(401).send({success: "failed", message: "password doesn't match" });
   }try {
-    userServices.modifyPass(req.data.email,req.body);
+    userServices.modifyPass(req.data.email, req.body.password);
+    userServices.sendEmail({
+      to: "ernitish26@gmail.com",
+      subject: "Password Reset",
+      text: "Password Reset successfully",
+      link:"",
+      url:""
+    })
     res.status(201).send({success: "true", message: "password changed" });
   } catch (error) {
     res.status(401).send({success: "false", message: "password is not changed" });
   }
 };
 
- export const verifyuser = async(req,res) => {
-  const validuser = await userServices.verifyemail(req.body)
+ export const verifyuser = async(req:Request, res:Response) => {
+  const validuser = await userServices.verifyemail(req.body.email)
   if(!validuser){
     res.status(401).send({success: "false", message: "user doesn't exist" });
   }else{
@@ -42,19 +68,19 @@ export const signin = async (req, res) => {
   }
 };
 
- export const forgetPass = async (req, res) => {
+ export const forgetPass = async (req:Request, res:Response) => {
   const validpass = await userServices.matchpass(req.body)
   if(!validpass){
     return res.status(401).send({success: "failed", message: "password doesn't match" });
   }try {
-    userServices.modifyPass(req.data.email,req.body);
+    userServices.modifyPass(req.data.email,req.body.password);
     res.status(201).send({success: "true", message: "password updated" });
   } catch (error) {
     res.status(401).send({success: "false", message: "password is not updated" });
   }
 };
 
- export const updateuser = async (req, res) => {
+ export const updateuser = async (req:Request, res:Response) => {
   try {
     const response = await userServices.updateuser1(req.data.email , req.body);
     res.status(201).send({success: "true", message: "user updated successfully", response });
@@ -65,7 +91,7 @@ export const signin = async (req, res) => {
 
 //get user data with the help of token (without body)
 
- export const getuser = async (req, res) => {
+  export const getuser = async (req:Request, res:Response) => {
   try {
     const userData = await userServices.getdata(req.data.id);
     res.send(userData)
@@ -77,7 +103,7 @@ export const signin = async (req, res) => {
 
 //get user data with the help of token (without email)
 
- export const deluser = async (req, res) => {
+ export const deluser = async (req:Request, res:Response) => {
   try {
     await userServices.deleteuser(req.data.id);
     res.status(201).send({success: "true", message: "user deleted" });
@@ -89,9 +115,9 @@ export const signin = async (req, res) => {
 
 // get user in the form of list (page wise)
 
- export const userlist = async (req, res) => {
+ export const userlist = async (req:Request, res:Response) => {
   try{
-    const data = await userServices.user_list(req.params.page)
+    const data = await userServices.user_list(+req.params.page)
     if(data){
       res.status(201).send({success: "true", message: data });
     }
@@ -102,7 +128,7 @@ export const signin = async (req, res) => {
 
 // user address
 
- export const user_address = async (req,res)=>{
+ export const user_address = async (req:Request, res:Response)=>{
   try{
     const data = await userServices.useraddress(req.body,req.data.id)
     if(data){
@@ -115,7 +141,7 @@ export const signin = async (req, res) => {
   }
 };
 
- export const profileImg = async (req,res)=>{
+ export const profileImg = async (req:Request, res:Response)=>{
   if(req.file){
     res.status(201).send({success: "true", message: "image uploaded" });
   }else{
@@ -123,51 +149,11 @@ export const signin = async (req, res) => {
   }
 };
 
- export const flipkartMob = async (req,res)=>{
-  try{
-    const fkart = await userServices.flipkart()
-    if(fkart){
-      res.status(201).send({success: "true", message: "userdata found", Data : fkart });
-    }
-  }catch(error){
-    res.status(401).send({success: "false", message: "userdata not found" ,error});
-  }
-};
-
- export const flipkartAllMob = async (req,res)=>{
-  try{
-    const fkart = await userServices.flipkartAll()
-    if(fkart){
-      res.status(201).send({success: "true", message: "userdata found", Data : fkart });
-    }
-  }catch(error){
-    res.status(401).send({success: "false", message: "userdata not found" ,error});
-  }
-};
- export const snapdealTshirt = async (req,res)=>{
-  try{
-    const sdeal = await userServices.snapdeal()
-    if(sdeal){
-      res.status(201).send({success: "true", message: "userdata found", Data : sdeal });
-    }
-  }catch(error){
-    res.status(401).send({success: "false", message: "userdata not found" ,error});
-  }
-};
- export const aggregate = async (req,res) => {
-  try {
-    const data = await userServices.findByAggregate()
-    res.status(201).send({success: "true", message: "userdata found", Data : data });
-  } catch (error) {
-    res.status(401).send({success: "false",error});
-  }
-}
-
- export const refreshuser = async (req,res) => {
+ export const refreshuser = async (req:reqInterface, res:Response) => {
   try {
     const token = await userServices.generateToken(req.data)
     res.cookie('refresh_token', token.refreshToken, { httpOnly: true,  
-      sameSite: 'None', secure: true,
+      sameSite: 'none', secure: true,
       maxAge: 24 * 60 * 60 * 1000
     });
     res.status(200).send(token.accessToken);
