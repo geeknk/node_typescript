@@ -1,7 +1,7 @@
 import express from "express";
 export const router = express.Router();
-import * as mid from "../middleware/usermiddle.js";
-import * as controller from "../controllers/userController.js";
+import * as mid from "../middleware/usermiddle";
+import * as controller from "../controllers/userController";
 
 router.get("/register",mid.verifyEmail, controller.signup);
 router.get("/get", mid.checkAuth, controller.getuser);
@@ -14,3 +14,4 @@ router.put("/updateuser", mid.checkAuth, controller.updateuser);
 router.put("/delete", mid.checkAuth, controller.deluser);
 router.post("/forgot-password", controller.verifyuser);
 router.put("/profile-image", mid.upload, controller.profileImg);
+router.put("/refresh",mid.verifyRT,controller.refreshuser);

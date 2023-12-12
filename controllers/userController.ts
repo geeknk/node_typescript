@@ -13,7 +13,7 @@ export const signup = async (req:Request, res:Response) => {
   try {
     await userServices.usersignup(req.body) 
     userServices.sendEmail({
-      to:req.body.email,
+      to:"rajaryan232326@gmail.com",
       subject: "Registration",
       text:"user registered successfully",
       link:"",
@@ -45,7 +45,7 @@ export const signin = async (req:Request, res:Response) => {
   if(!validpass){
     return res.status(401).send({success: "failed", message: "password doesn't match" });
   }try {
-    userServices.modifyPass(req.data.email, req.body.password);
+    userServices.modifyPass(req.body);
     userServices.sendEmail({
       to: "ernitish26@gmail.com",
       subject: "Password Reset",
@@ -58,9 +58,9 @@ export const signin = async (req:Request, res:Response) => {
     res.status(401).send({success: "false", message: "password is not changed" });
   }
 };
-
+///
  export const verifyuser = async(req:Request, res:Response) => {
-  const validuser = await userServices.verifyemail(req.body.email)
+  const validuser = await userServices.fetchUserData(req.body.email)
   if(!validuser){
     res.status(401).send({success: "false", message: "user doesn't exist" });
   }else{
@@ -73,16 +73,16 @@ export const signin = async (req:Request, res:Response) => {
   if(!validpass){
     return res.status(401).send({success: "failed", message: "password doesn't match" });
   }try {
-    userServices.modifyPass(req.data.email,req.body.password);
+    userServices.modifyPass(req.body);
     res.status(201).send({success: "true", message: "password updated" });
   } catch (error) {
     res.status(401).send({success: "false", message: "password is not updated" });
   }
 };
 
- export const updateuser = async (req:Request, res:Response) => {
+export const updateuser = async (req:Request, res:Response) => {
   try {
-    const response = await userServices.updateuser1(req.data.email , req.body);
+    const response = await userServices.updateuser1(req.body);
     res.status(201).send({success: "true", message: "user updated successfully", response });
   } catch (error) {
     res.status(402).send({success: "false", message:"user not updated"});
@@ -93,7 +93,7 @@ export const signin = async (req:Request, res:Response) => {
 
   export const getuser = async (req:Request, res:Response) => {
   try {
-    const userData = await userServices.getdata(req.data.id);
+    const userData = await userServices.getdata(req.body.id);
     res.send(userData)
   } catch (error) {
     console.log(error)
@@ -105,7 +105,7 @@ export const signin = async (req:Request, res:Response) => {
 
  export const deluser = async (req:Request, res:Response) => {
   try {
-    await userServices.deleteuser(req.data.id);
+    await userServices.deleteuser(req.body.id);
     res.status(201).send({success: "true", message: "user deleted" });
   } catch (error) {
     console.log(error)
@@ -130,7 +130,7 @@ export const signin = async (req:Request, res:Response) => {
 
  export const user_address = async (req:Request, res:Response)=>{
   try{
-    const data = await userServices.useraddress(req.body,req.data.id)
+    const data = await userServices.useraddress(req.body,req.body.id)
     if(data){
       res.status(201).send({success: "true", message: "address saved" });
     }else{
@@ -149,9 +149,9 @@ export const signin = async (req:Request, res:Response) => {
   }
 };
 
- export const refreshuser = async (req:reqInterface, res:Response) => {
+ export const refreshuser = async (req:Request, res:Response) => {
   try {
-    const token = await userServices.generateToken(req.data)
+    const token = await userServices.generateToken(req.body)
     res.cookie('refresh_token', token.refreshToken, { httpOnly: true,  
       sameSite: 'none', secure: true,
       maxAge: 24 * 60 * 60 * 1000
