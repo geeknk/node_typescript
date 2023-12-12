@@ -13,22 +13,11 @@ export const verifyEmail = async (
   res: Response,
   next: NextFunction
 ) => {
-  con.query(
-    `SELECT * FROM users WHERE email ='${req.body.email}'`,
-    (err, result) => {
-      if (err) {
-        res.send(err);
-      } else if (result == null) {
-        console.log("email does not exist ");
-        next();
-      } else {
-        console.log(result);
-        return res
-          .status(409)
-          .send({ success: false, msg: "Email already exist" });
-      }
-    }
-  );
+  const userData = await fetchUserData(req.body.email);
+  
+  if(userData) return res.status(409).send({ success: false, msg: "Email already exist" });
+
+  next()
 };
 
 export const checkAuth = async (
@@ -45,7 +34,7 @@ export const checkAuth = async (
       config.ACCESS_TOKEN_SECRET as Secret
     ) as JwtPayload;
     // req["data" as key of typeof Request] = { email, token, id };
-    req.data = {email,token,id}
+    req.body = {email,token,id}
     next();
   } else {
     return res.status(409).send({ success: false, msg: "invalid token" });
@@ -88,9 +77,10 @@ export const loginMiddileware =async (req:Request, res:Response, next:NextFuncti
   const userData = await fetchUserData(req.body.email);
 
   if(userData==null) return res.status(403).send("user not found please register first")
-
+    
   if(! await bcrypt.compare(req.body.password , userData.password)) 
     res.status(404).send("email or password does not match")
+  
   req.body.id = userData.id
   req.body.username = userData.username
 

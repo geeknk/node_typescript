@@ -1,24 +1,12 @@
-import config from "../config/constant.js";
-import { con } from "../config/dbconnect.js";
-import { client } from "../config/redisconfig.js";
+import config from "../config/constant";
+import { con } from "../config/dbconnect";
+import { client } from "../config/redisconfig";
 import { google } from "googleapis";
 import jwt, { Secret } from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import randToken from "rand-token";
 import { mailInterface, user, user_address } from "../interfaces.td.js";
 import { RowDataPacket } from "mysql2";
-
-function verifyEmailF(email: string) {
-  return new Promise((res, rej) => {
-    con.query(
-      `SELECT * FROM users WHERE email=${email}`,
-      function (err, result) {
-        if (err) rej(err);
-        res(result);
-      }
-    );
-  });
-}
 
 const oAuth2Client = new google.auth.OAuth2(
   config.CLIENT_ID,
@@ -74,11 +62,11 @@ export const getdata = async (id: string) => {
 };
 
 export const deleteuser = async (id: string) => {
-  con.query(`DELETE * FROM users WHERE id='${id}'`);
+  con.query("DELETE * FROM users WHERE id=?",id);
 };
 
-export const updateuser1 = async (email: string, body_data: user) => {
-  await con.query(`UPDATE users SET '${body_data}' WHERE email='${email}'`);
+export const updateuser1 = async (data:user) => {
+  await con.query("UPDATE users SET ? WHERE email=?",[data,data.email]);
 };
 
 export const matchpass = async (data: {
@@ -88,40 +76,13 @@ export const matchpass = async (data: {
   return data.password === data.new_password;
 };
 
-export const verifyemail = async (email: string) => {
-  // con.query(`SELECT * FROM users WHERE email=${email}`, function (err, result) {
-  //   if (err) throw err;
-  //   console.log("Result: " + result);
-  //   emailexist = result;
-  // });
-
-  const emailexist: any = verifyEmailF(email).catch(console.error);
-  console.log(emailexist, "emailexistemailexist");
-  if (emailexist) {
-    const token = jwt.sign(
-      {
-        email: emailexist.email,
-        id: emailexist.id,
-        username: emailexist.username,
-      },
-      config.ACCESS_TOKEN_SECRET as jwt.Secret,
-      { expiresIn: config.FPASS_EXPIRESIN }
-    );
-
-    return token;
-  } else {
-    return false;
-  }
-};
-
-
-export const modifyPass = async (email: string, password: string) => {
-  con.query("UPDATE users SET password= ? WHERE email = ?", [password, email]);
+export const modifyPass = async (data:{email: string, password: string}) => {
+  con.query("UPDATE users SET password= ? WHERE email = ?", [data.password, data.email]);
 };
 
 export const fetchUserData = async (email: string): Promise<user | null> => {
   try {
-    const userData: user = await new Promise((rej, res) => {
+    const userData: user = await new Promise((res,rej) => {
       con.query(
         `SELECT * FROM users WHERE email= '${email}'`,
         (err: any, result: RowDataPacket) => {
@@ -139,7 +100,7 @@ export const fetchUserData = async (email: string): Promise<user | null> => {
 };
 
 export const token = async (userData: {
-  id: string;
+  id: number;
   username: string;
   email: string;
 }) => {
@@ -162,34 +123,31 @@ export const token = async (userData: {
 
 export const usersignup = (data: user) => {
   try {
-    con.query(`INSERT INTO users VALUES('${data}')`, data, (err, result) => {
+    con.query("INSERT INTO users VALUES(?)", data, (err, result) => {
       if (err) throw err;
       console.log(result);
     });
-
-    const mailOption = {
-      from: config.EMAIL_FROM,
-      to: "rajaryan232326@gmail.com",
-      subject: "Registration",
-      text: "Registeration successful",
-    };
-    transport.sendMail(mailOption);
-
   } catch (error) {
     return error;
   }
 };
 
-export const user_list = async (page: number) => {
+export const userList = async (page: number): Promise<user[] | null> => {
+  try {
   const firstindex = (page - 1) * 10;
-  const lastindex = page * 10;
-  await con.query("SELECT * FROM users", function (err, result) {
-    if (err) {
-      console.error(err);
-    } else {
-      let data = result;
-    }
-  });
+  // const lastindex = page * 10;
+  const userData = await new Promise((res, rej) => {
+    con.query("SELECT * FROM users LIMIT 10 OFFSET ?",firstindex, (err, result)=> {
+      if (err) rej(err);
+      res(result);
+    })
+  })
+  console.log(userData);
+  return userData as user[];
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
 };
 
 export const useraddress = async (data: user_address, ID: string) => {
@@ -202,7 +160,7 @@ export const useraddress = async (data: user_address, ID: string) => {
       ${data.pin_code},
       ${data.phone},
     )`)
-    
+    return true
   } catch (error) {
     console.error(error);
   }

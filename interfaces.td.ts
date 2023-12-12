@@ -1,5 +1,4 @@
 import {Request,Response} from 'express'
-import { SignOptions } from 'jsonwebtoken';
 
 export interface user {
   id?: number;

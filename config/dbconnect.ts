@@ -1,5 +1,5 @@
 import mysql from 'mysql2';
-import config from './constant.js'
+import config from './constant'
 
 export const con = mysql.createConnection({
   host: "localhost",
