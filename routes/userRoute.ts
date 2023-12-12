@@ -7,7 +7,7 @@ router.get("/register",mid.verifyEmail, controller.signup);
 router.get("/get", mid.checkAuth, controller.getuser);
 router.get("/list/:page", controller.userlist);
 router.post("/auth/signin",mid.loginMiddileware, controller.signin);
-router.post("/address", mid.checkAuth, controller.user_address);
+router.post("/address", mid.checkAuth, controller.userAddress);
 router.put("/changePassword", mid.checkAuth, controller.changePass);
 router.put("/verify-reset-password", mid.checkAuth, controller.forgetPass);
 router.put("/updateuser", mid.checkAuth, controller.updateuser);

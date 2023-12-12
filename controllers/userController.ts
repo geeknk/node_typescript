@@ -117,7 +117,7 @@ export const updateuser = async (req:Request, res:Response) => {
 
  export const userlist = async (req:Request, res:Response) => {
   try{
-    const data = await userServices.user_list(+req.params.page)
+    const data = await userServices.userList(+req.params.page)
     if(data){
       res.status(201).send({success: "true", message: data });
     }
@@ -128,7 +128,7 @@ export const updateuser = async (req:Request, res:Response) => {
 
 // user address
 
- export const user_address = async (req:Request, res:Response)=>{
+ export const userAddress = async (req:Request, res:Response)=>{
   try{
     const data = await userServices.useraddress(req.body,req.body.id)
     if(data){

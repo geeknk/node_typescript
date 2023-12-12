@@ -132,7 +132,7 @@ export const usersignup = (data: user) => {
   }
 };
 
-export const user_list = async (page: number): Promise<user[] | null> => {
+export const userList = async (page: number): Promise<user[] | null> => {
   try {
   const firstindex = (page - 1) * 10;
   // const lastindex = page * 10;
